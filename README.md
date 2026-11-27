@@ -9,10 +9,13 @@ Since 1 June 2026, applications from Sri Lanka are submitted at **VFS Global Swe
 - **Trip & host:** dates, flights, who pays, the host's details for form 241011
 - **Travellers:** one card per applicant (passport, NIC, work status, ties to Sri Lanka)
 - **Checklists:** the host's list plus one per traveller, built from the Embassy's official Visiting Family/Friends checklist, with progress tracking
-- **Letters:** host invitation cover letter, applicant cover letters, travel itinerary and document index, with Copy and Download as Word (.doc)
+- **Official forms:** direct links on each item (form 241011, form 119031, Embassy checklist, Skatteverket personbevis, VFS booking, photo rules)
+- **Uploads:** attach scans (PDF or images) to any checklist item; files are kept in the browser's IndexedDB
+- **Complete package:** one ZIP with every upload in Embassy order, one folder per person, all letters as Word (.docx), and a README index of what's missing
+- **Letters:** host invitation cover letter, applicant cover letters, travel itinerary and document index, with Copy and Download as Word (.docx)
 - **Plan & fees:** milestones worked back from the arrival date, plus fees in LKR per traveller
 - **Checks:** warns about stays over 90 days, passports expiring too soon or older than 10 years, and late applications
-- **Privacy:** all data stays in the browser's localStorage, with export and import as JSON
+- **Privacy:** details stay in localStorage and uploads in IndexedDB, in the browser only; details can be exported and imported as JSON
 
 ## Run locally
 

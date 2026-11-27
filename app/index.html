@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 /* VOICE everyday helper for a family task: calm, exact, reassuring
    IDEA a Swedish visa folder: blue cover, yellow tabs, paper sheets inside
@@ -101,6 +102,16 @@ table.fees{border-collapse:collapse;width:100%}
 .fees td,.fees th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
 .fees td.n,.fees th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .fees tr.tot td{font-weight:700;border-bottom:0}
+.up{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin-top:8px}
+.mini{position:relative;display:inline-flex;align-items:center;min-height:36px;padding:6px 12px;border-radius:18px;font:600 14px Inter,sans-serif;border:1px solid var(--blue2);color:var(--blue2);background:transparent;text-decoration:none;cursor:pointer}
+.mini:focus-within{outline:3px solid var(--yel);outline-offset:2px}
+.mini.go{background:var(--tint);border-color:transparent}
+.sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:4px 4px 4px 12px;border-radius:18px;background:var(--tint);font-size:14px}
+.chip .fn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:22ch}
+.chip .x{border:0;background:transparent;color:var(--quiet);font-size:18px;line-height:1;width:32px;height:32px;border-radius:50%;cursor:pointer}
+.chip .x:hover{color:var(--red)}
+.pkg .row{justify-content:space-between;align-items:flex-start}
 .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
 .toast.show{opacity:1}
 .foot{color:var(--quiet);font-size:14px}
@@ -157,6 +168,7 @@ table.fees{border-collapse:collapse;width:100%}
 
   <section data-view="checklist">
     <p class="lead">Built from the Embassy of Sweden's Visiting Family/Friends checklist for Sri Lanka. Tick items as they're ready; progress is saved in this browser.</p>
+    <div class="panel pkg" id="pkg"></div>
     <div class="cols" id="checks"></div>
   </section>
 
@@ -166,8 +178,7 @@ table.fees{border-collapse:collapse;width:100%}
       <div>
         <div class="row" style="margin-bottom:12px">
           <button type="button" class="btn pri" id="copyDoc">Copy text</button>
-          <button type="button" class="btn" id="dlDoc" hidden>Download as Word (.doc)</button>
-          <button type="button" class="btn" id="dlAll" hidden>Download all documents</button>
+          <button type="button" class="btn" id="dlDoc" hidden>Download as Word (.docx)</button>
         </div>
         <div class="sheet" id="sheet"></div>
         <p class="foot">Highlighted text is missing; fill it in under Trip &amp; host or Travellers. Print and sign each letter by hand.</p>
@@ -283,13 +294,25 @@ const travItems=t=>{const it=[['pass','Current passport','Valid 3 months after t
  if(t.status==='other')it.push(['sup','Proof of who supports you financially','For example a family member\'s bank statements and a letter.']);
  it.push(['gn','Grama Niladhari letter certified by the Divisional Secretary','Proof of residence or property in Sri Lanka.']);
  if(isMinor(t))it.push(['minor','Consent letter signed by both parents (or the absent parent)','Plus birth certificate; required for under-18s.']);
+ it.push(['appt','VFS appointment booked','One slot per traveller; bring the appointment letter.']);
  it.push(['copies','Copies of passport biodata page and all used pages','A4, unstapled.'],['deeds','Optional: property deeds or other proof of ties','Helps show you will return.'],['cov','Applicant cover letter, signed','Generated under Letters.'],['hpack','Copy of the host pack (form 241011 and attachments)','From the host checklist.'],['chk','Embassy checklist, ticked and signed','Goes on top of the file.']);
  return it};
 
 const allKeys=()=>[...hostItems().map(i=>'h:'+i[0]),...S.travellers.flatMap(t=>travItems(t).map(i=>'t:'+t.id+':'+i[0]))];
 const prog=keys=>{const d=keys.filter(k=>S.checks[k]).length;return [d,keys.length]};
 const progHtml=(d,n)=>`<div class="prog"><div class="bar"><i style="width:${n?d/n*100:0}%"></i></div><span>${d} of ${n} ready</span></div>`;
-const clList=(items,pre)=>`<ul class="cl">${items.map(([id,t,n])=>{const k=pre+id,on=!!S.checks[k];return `<li class="${on?'on':''}"><input type="checkbox" id="c-${esc(k)}" data-c="${esc(k)}"${on?' checked':''}><label for="c-${esc(k)}"><span class="t">${esc(t)}</span>${n?`<br><span class="n">${esc(n)}</span>`:''}</label></li>`}).join('')}</ul>`;
+const URL_={f241011:'https://assets.ctfassets.net/xxg4p8gt3sg6/5qdZit4VeQr6yGII56mxxE/f2f989a998bfb9b6e47ed2380642fd94/Invitation_%C3%A2___Before_application_for_Schengen_visa_-_241011.pdf',f119031:'https://assets.ctfassets.net/xxg4p8gt3sg6/1bgBfBR18DvGYHd9bhvFpE/de669d6afd5657f806bbbcce23209f86/sweden-visa-application-form-english.pdf',chk:'https://assets.ctfassets.net/xxg4p8gt3sg6/4t6pINDUK6VbiEThiQgoTJ/1388464ec236abd28beea855a18f7212/Visiting_Relatives_And_Friends_Visa.pdf',pb:'https://www.skatteverket.se/privat/folkbokforing/personbevis/personbevisen/invitationinbjudan.5.361dc8c15312eff6fd15ea3.html',book:'https://visa.vfsglobal.com/lka/en/swe/book-an-appointment',photo:'https://visa.vfsglobal.com/lka/en/swe/visa-type#visitingrelativesandfriendsvisa',invite:'https://www.migrationsverket.se/en/you-want-to-apply/visiting-sweden/invite-family-friends-or-partners.html'};
+const LINKS={h241011:[URL_.f241011,'Get form 241011'],hpb:[URL_.pb,'Order from Skatteverket'],hcov:['#letters','Open letter'],form:[URL_.f119031,'Get form 119031'],photo:[URL_.photo,'Photo rules'],chk:[URL_.chk,'Get Embassy checklist'],appt:[URL_.book,'Book at VFS'],cov:['#letters','Open letter'],hpack:['#checklist','See host list']};
+const FS={db:null,list:[],mem:false,ready:false};
+const size=b=>b<1024?b+' B':b<1048576?Math.round(b/1024)+' KB':(b/1048576).toFixed(1)+' MB';
+const filesFor=k=>FS.list.filter(f=>f.key===k);
+const idbOpen=()=>new Promise((res,rej)=>{try{const r=indexedDB.open('sweden-visa-helper-files',1);r.onupgradeneeded=()=>r.result.createObjectStore('files',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
+const idb=(mode,fn)=>new Promise((res,rej)=>{if(!FS.db)return res(null);try{const t=FS.db.transaction('files',mode),q=fn(t.objectStore('files'));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)}catch(e){rej(e)}});
+const addFiles=async(key,files)=>{for(const file of files){const rec={id:uid()+uid(),key,name:file.name||'scan',type:file.type,size:file.size,added:Date.now(),blob:file};try{await idb('readwrite',st=>st.put(rec))}catch(e){FS.mem=true}FS.list.push(rec)}};
+const delFile=async id=>{try{await idb('readwrite',st=>st.delete(id))}catch(e){}FS.list=FS.list.filter(f=>f.id!==id)};
+const clearFiles=async()=>{try{await idb('readwrite',st=>st.clear())}catch(e){}FS.list=[]};
+const linkHtml=id=>{const lk=LINKS[id];if(!lk)return '';const ext=lk[0][0]!=='#';return `<a class="mini go" href="${esc(lk[0])}"${ext?' rel="noopener"':''}>${esc(lk[1])}${ext?' ↗':''}</a>`};
+const clList=(items,pre)=>`<ul class="cl">${items.map(([id,t,n])=>{const k=pre+id,on=!!S.checks[k],fs=filesFor(k);return `<li class="${on?'on':''}"><input type="checkbox" id="c-${esc(k)}" data-c="${esc(k)}"${on?' checked':''}><div><label for="c-${esc(k)}"><span class="t">${esc(t)}</span>${n?`<br><span class="n">${esc(n)}</span>`:''}</label><div class="up">${linkHtml(id)}<label class="mini">Upload scan<input class="sr" type="file" multiple accept="application/pdf,image/*" data-up="${esc(k)}"></label>${fs.map(f=>`<span class="chip"><span class="fn" title="${esc(f.name)}">${esc(f.name)}</span><span class="n">${size(f.size)}</span><button type="button" class="x" data-del="${esc(f.id)}" aria-label="Remove ${esc(f.name)}">×</button></span>`).join('')}</div></div></li>`}).join('')}</ul>`;
 const renderChecks=()=>{const h=hostItems();
  $('#checks').innerHTML=`<div class="panel"><h2>Host in Sweden${S.host.name?' – '+esc(S.host.name):''}</h2>${progHtml(...prog(h.map(i=>'h:'+i[0])))}${clList(h,'h:')}</div>`+S.travellers.map((t,i)=>{const it=travItems(t);return `<div class="panel"><h2>${esc(t.name||'Traveller '+(i+1))}</h2>${progHtml(...prog(it.map(x=>'t:'+t.id+':'+x[0])))}${clList(it,'t:'+t.id+':')}</div>`}).join('')};
 
@@ -352,7 +375,10 @@ const renderLetters=()=>{const ds=docs();if(!ds.some(d=>d[0]===cur))cur='host';
  $('#doclist').innerHTML=ds.map(([id,l])=>`<button type="button" data-doc="${esc(id)}" aria-pressed="${id===cur}">${esc(l)}</button>`).join('');
  $('#sheet').innerHTML=ds.find(d=>d[0]===cur)[2]()};
 
-const renderAll=()=>{renderHero();renderAlerts();renderChecks();renderPlan();renderLetters()};
+let DL=null,DLknown=false;
+const renderPkg=()=>{const n=FS.list.length,sz=FS.list.reduce((a,f)=>a+f.size,0),[d,t]=prog(allKeys());
+ $('#pkg').innerHTML=`<div class="row"><div><h2>Your document package</h2><p class="lead" style="margin:0">${n} file${n===1?'':'s'} uploaded (${size(sz)}), ${d} of ${t} items ready. Use <b>Get form</b> for official forms and <b>Upload scan</b> for each document. The ZIP puts every upload in Embassy order, one folder per person, plus all letters as Word files.</p></div><button type="button" class="btn pri" id="dlPkg"${DL?'':' hidden'}>Download complete package (.zip)</button></div>${FS.mem?'<div class="al warn" style="margin-top:12px">This browser view can\'t store files, so uploads last only until you close the page. Download the package before leaving.</div>':''}${DLknown&&!DL?'<p class="foot">Downloads aren\'t available in this view. Open the app on claude.ai in a browser to download.</p>':''}`};
+const renderAll=()=>{renderHero();renderAlerts();renderChecks();renderPkg();renderPlan();renderLetters()};
 
 const VIEWS=['trip','travellers','checklist','letters','plan','data'];
 const show=()=>{const h=location.hash.slice(1),vw=VIEWS.includes(h)?h:'trip';document.querySelectorAll('[data-view]').forEach(s=>s.hidden=s.dataset.view!==vw);document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===vw))};
@@ -362,7 +388,7 @@ $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)
 const toastEl=$('#toast');let tt;const toast=m=>{toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove('show'),2600)};
 let timer;const changed=()=>{S.sample=false;$('#sampleBar').hidden=true;save();clearTimeout(timer);timer=setTimeout(renderAll,150)};
 document.addEventListener('input',e=>{const el=e.target,f=el.dataset.f;if(!f)return;if(el.dataset.s)S[el.dataset.s][f]=el.value;else if(el.dataset.t){const t=T(el.dataset.t);if(t)t[f]=el.value}else return;changed()});
-document.addEventListener('change',e=>{const el=e.target;if(el.dataset.c){S.checks[el.dataset.c]=el.checked;el.closest('li').classList.toggle('on',el.checked);save();renderHero();renderChecks();if(cur.startsWith('idx'))renderLetters()}else if(el.dataset.t&&el.dataset.f==='name')renderForms()});
+document.addEventListener('change',async e=>{const el=e.target;if(el.dataset.up){const fl=Array.from(el.files||[]);if(!fl.length)return;await addFiles(el.dataset.up,fl);S.checks[el.dataset.up]=true;save();renderHero();renderChecks();renderPkg();if(cur.startsWith('idx'))renderLetters();toast(fl.length+' file'+(fl.length>1?'s':'')+' added');return}if(el.dataset.c){S.checks[el.dataset.c]=el.checked;el.closest('li').classList.toggle('on',el.checked);save();renderHero();renderChecks();renderPkg();if(cur.startsWith('idx'))renderLetters()}else if(el.dataset.t&&el.dataset.f==='name')renderForms()});
 $('#travList').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(b){S.travellers=S.travellers.filter(t=>t.id!==b.dataset.rm);changed();renderForms()}});
 $('#addT').addEventListener('click',()=>{const t=blankT();const p=S.travellers[0];if(p){t.address=p.address;t.relation=p.relation==='Father'?'Mother':p.relation==='Mother'?'Father':p.relation}S.travellers.push(t);changed();renderForms()});
 $('#blankBtn').addEventListener('click',()=>{S=BLANK();save();renderForms();renderAll();toast('Started with blank details')});
@@ -370,20 +396,37 @@ $('#doclist').addEventListener('click',e=>{const b=e.target.closest('[data-doc]'
 const copy=async txt=>{try{await navigator.clipboard.writeText(txt);toast('Copied')}catch(e){toast('Copy was blocked; select the text and copy it manually')}};
 $('#copyDoc').addEventListener('click',()=>copy($('#sheet').innerText));
 $('#copyData').addEventListener('click',()=>copy(JSON.stringify(S,null,1)));
-const wordFile=(title,body)=>`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:4pt;vertical-align:top}.hl{background:#fff3b0}</style></head><body>${body}</body></html>`;
-let DL=null;
 const fname=s=>s.replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-')||'document';
-const saveFile=async(filename,data,type)=>{if(!DL)return;try{await DL.save({filename,data:new Blob([data],{type})});toast('Saved '+filename)}catch(e){toast('The download was not saved')}};
-$('#dlDoc').addEventListener('click',()=>{const d=docs().find(x=>x[0]===cur);saveFile(fname(d[1])+'.doc',wordFile(d[1],d[2]()),'application/msword')});
-$('#dlAll').addEventListener('click',()=>{const body=docs().map(d=>d[2]()).join('<br clear="all" style="page-break-before:always">');saveFile('Sweden-visa-documents.doc',wordFile('Sweden visa documents',body),'application/msword')});
+const saveFile=async(filename,data)=>{if(!DL)return;try{await DL.save({filename,data});toast('Saved '+filename)}catch(e){toast(e&&e.code==='declined'?'Download cancelled':'The download was not saved')}};
+const xe=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const runs=(node,f)=>{let o='';node.childNodes.forEach(n=>{if(n.nodeType===3){const t=n.textContent;if(t)o+=`<w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>${f.b?'<w:b/>':''}${f.hl?'<w:highlight w:val="yellow"/>':''}<w:sz w:val="${f.sz||22}"/></w:rPr><w:t xml:space="preserve">${xe(t)}</w:t></w:r>`}else if(n.nodeName==='BR')o+='<w:r><w:br/></w:r>';else if(n.nodeType===1)o+=runs(n,{...f,b:f.b||n.nodeName==='B'||n.nodeName==='STRONG'||n.nodeName==='TH',hl:f.hl||n.classList.contains('hl')})});return o};
+const para=(r,sp=160)=>`<w:p><w:pPr><w:spacing w:after="${sp}"/></w:pPr>${r}</w:p>`;
+const docXml=html=>{const box=document.createElement('div');box.innerHTML=html;let b='';for(const el of box.children){if(el.nodeName==='P')b+=para(runs(el,{}));else if(el.nodeName==='H3')b+=para(runs(el,{b:true,sz:28}),200);else if(el.nodeName==='TABLE'){const rows=[...el.querySelectorAll('tr')],nc=Math.max(1,...rows.map(r=>r.cells.length)),w=Math.floor(9638/nc),bd=['top','left','bottom','right','insideH','insideV'].map(x=>`<w:${x} w:val="single" w:sz="4" w:space="0" w:color="999999"/>`).join('');b+=`<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblBorders>${bd}</w:tblBorders></w:tblPr><w:tblGrid>${`<w:gridCol w:w="${w}"/>`.repeat(nc)}</w:tblGrid>${rows.map(r=>`<w:tr>${[...r.cells].map(c=>`<w:tc><w:tcPr><w:tcW w:w="${w}" w:type="dxa"/></w:tcPr>${para(runs(c,{}),60)}</w:tc>`).join('')}</w:tr>`).join('')}</w:tbl>`+para('',120)}}
+ return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${b}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`};
+const docx=async html=>{const z=new window.JSZip();z.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');z.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');z.file('word/document.xml',docXml(html));return z.generateAsync({type:'uint8array',compression:'DEFLATE'})};
+const ORDER=['chk','appt','pass','old','photo','form','ins','fly','hpack','pen','pay','con','leave','breg','bbank','sup','gn','bank','bal','minor','copies','cov','deeds'];
+const oi=id=>{const i=ORDER.indexOf(id);return i<0?99:i};
+const clean=x=>String(x).replace(/[\\/:*?"<>|\u0000-\u001f]+/g,' ').replace(/\s+/g,' ').trim().slice(0,70).trim();
+const short=t=>{const o=/^Optional: /.test(t);return clean(t.replace(/^Optional: /,'').split(/ – |, |: | \(/)[0])+(o?' (optional)':'')};
+const buf=bl=>bl.arrayBuffer?bl.arrayBuffer():new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsArrayBuffer(bl)});
+const buildPackage=async()=>{const Z=window.JSZip;if(!Z)throw new Error('nozip');const zip=new Z(),top=`Sweden visa package ${TODAY}`,root=zip.folder(top),lines=['Sweden visit visa - document package','Generated '+fmt(TODAY),'Embassy of Sweden, New Delhi - submit at VFS Global Sweden, Colombo',''];
+ const addItems=async(folder,items,pre,label)=>{lines.push(label);for(const [i,[id,t]] of items.entries()){const fs=filesFor(pre+id),name=`${pad(i+1)} ${short(t)}`;lines.push(`  ${S.checks[pre+id]?'[x]':'[ ]'} ${name}${fs.length?` (${fs.length} file${fs.length>1?'s':''})`:' (no upload)'}`);if(!fs.length)continue;const f=folder.folder(name),used=new Set();for(const x of fs){const base=clean(x.name)||'scan';let nm=base,k=2;while(used.has(nm))nm=`${k++} ${base}`;used.add(nm);f.file(nm,await buf(x.blob))}}lines.push('')};
+ const hn=clean(S.host.name||'Host'),h=root.folder(`1 Host - ${hn}`);await addItems(h,hostItems(),'h:','HOST IN SWEDEN - '+hn);h.file('Host cover letter.docx',await docx(docHost()));
+ for(const [i,t] of S.travellers.entries()){const nm=clean(t.name||'Traveller '+(i+1)),f=root.folder(`${i+2} ${nm}`),it=travItems(t).slice().sort((a,b)=>oi(a[0])-oi(b[0]));await addItems(f,it,'t:'+t.id+':',nm.toUpperCase());f.file(`Cover letter - ${nm}.docx`,await docx(docApp(t)));f.file(`Document index - ${nm}.docx`,await docx(docIndex(t)));f.file('Travel itinerary.docx',await docx(docItin()))}
+ lines.push('Print the host documents once for each traveller: every applicant needs a full set.','Bring originals plus one A4 copy of each, unstapled, to the VFS appointment.');root.file('README.txt',lines.join('\r\n'));
+ return zip.generateAsync({type:Z.support.blob?'blob':'uint8array'})};
+document.addEventListener('click',async e=>{const del=e.target.closest('[data-del]');if(del){await delFile(del.dataset.del);renderChecks();renderPkg();toast('File removed');return}
+ if(e.target.closest('#dlPkg')){const b=e.target.closest('#dlPkg');if(!window.JSZip){toast("The ZIP tool didn't load; check your connection and reload");return}b.disabled=true;b.textContent='Preparing package…';try{await saveFile(`Sweden-visa-package-${TODAY}.zip`,await buildPackage())}catch(err){toast('Could not build the package')}b.disabled=false;b.textContent='Download complete package (.zip)'}});
+$('#dlDoc').addEventListener('click',async()=>{if(!window.JSZip){toast("The Word tool didn't load; check your connection and reload");return}const d=docs().find(x=>x[0]===cur);saveFile(fname(d[1])+'.docx',await docx(d[2]()))});
 $('#exp').addEventListener('click',()=>saveFile('sweden-visa-data.json',JSON.stringify(S,null,1),'application/json'));
 $('#imp').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.trip||!d.host||!Array.isArray(d.travellers))throw 0;d.checks=d.checks||{};S=d;save();renderForms();renderAll();toast('Data imported')}catch(err){toast('That file is not a data file from this helper')}};r.readAsText(f);e.target.value=''});
 $('#wipe').addEventListener('click',()=>{$('#wipeAsk').hidden=false});
 $('#wipeNo').addEventListener('click',()=>{$('#wipeAsk').hidden=true});
-$('#wipeYes').addEventListener('click',()=>{S=BLANK();try{localStorage.removeItem(LS)}catch(e){}$('#wipeAsk').hidden=true;renderForms();renderAll();toast('All details erased')});
+$('#wipeYes').addEventListener('click',async()=>{await clearFiles();S=BLANK();try{localStorage.removeItem(LS)}catch(e){}$('#wipeAsk').hidden=true;renderForms();renderAll();toast('All details erased')});
 
 renderForms();renderAll();show();
-window.claude?.use?.('downloads').then(d=>{if(d){DL=d;['#dlDoc','#dlAll','#exp'].forEach(s=>$(s).hidden=false)}}).catch(()=>{});
+(async()=>{try{if(!window.indexedDB)throw 0;FS.db=await idbOpen();FS.list=(await idb('readonly',st=>st.getAll()))||[]}catch(e){FS.db=null;FS.mem=true}FS.ready=true;renderHero();renderChecks();renderPkg()})();
+const dlp=window.claude?.use?.('downloads');Promise.resolve(dlp).then(d=>{DLknown=true;if(d){DL=d;['#dlDoc','#exp'].forEach(s=>$(s).hidden=false)}renderPkg()}).catch(()=>{DLknown=true;renderPkg()});
 }
 </script>
 </body>
