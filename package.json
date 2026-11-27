@@ -1,0 +1,15 @@
+{
+  "name": "sweden-visa-helper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Step-by-step helper for Sweden Schengen visit visa applications from Sri Lanka",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "html-validate app/index.html"
+  },
+  "devDependencies": {
+    "html-validate": "8.18.2",
+    "jsdom": "24.1.3"
+  },
+  "engines": { "node": ">=20" }
+}

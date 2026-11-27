@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sweden Visa Helper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday helper for a family task: calm, exact, reassuring
+   IDEA a Swedish visa folder: blue cover, yellow tabs, paper sheets inside
+   PICTURE the countdown track to arrival with every milestone placed by date, plus documents-ready meter
+   COLOUR Swedish blue #005293 ground band, white paper, flag yellow #fecc02 accent, red only for problems
+   TYPE Familjen Grotesk (Swedish-made) for headings + Inter for text
+   LAYOUT blue band with title and countdown track across the top; yellow tab row; one working column of panels; phone stacks */
+:root{color-scheme:light dark;--bg:light-dark(#f4f6f9,#08121f);--paper:light-dark(#ffffff,#0f1d30);--ink:light-dark(#0d1b2a,#e7eef7);--quiet:light-dark(#4a5a6e,#9fb0c4);--line:light-dark(#d5dde7,#23364f);--blue:#005293;--blue2:light-dark(#005293,#5aa9ff);--deep:#003b6b;--yel:#fecc02;--red:light-dark(#b42318,#ff8a80);--ok:light-dark(#1f7a3d,#6fd28f);--tint:light-dark(#e8f1fa,#13263d)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Familjen Grotesk",Inter,sans-serif;line-height:1.08;letter-spacing:-.02em;margin:0}
+h1{font-size:clamp(30px,4.4vw,46px);text-wrap:balance}
+h2{font-size:26px;margin-bottom:6px}
+h3{font-size:19px}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:max(4vw,16px)}
+.hero{background:var(--blue);color:#fff;padding-block:28px 0}
+.hero .sub{color:#d6e6f5;margin:8px 0 0;max-width:62ch}
+.hero .top{display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-end;justify-content:space-between}
+.count{text-align:right}
+.count b{display:block;font:700 clamp(40px,6vw,64px)/1 "Familjen Grotesk",sans-serif;color:var(--yel)}
+.count span{color:#d6e6f5;font-size:14px}
+.track{position:relative;height:118px;margin:26px 0 0}
+.rail{position:absolute;left:0;right:0;top:56px;height:6px;border-radius:3px;background:rgba(255,255,255,.22)}
+.rail i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--yel)}
+.ms{position:absolute;top:0;transform:translateX(-50%);text-align:center;width:120px;font-size:13px;line-height:1.25;color:#fff}
+.ms .dot{display:block;width:16px;height:16px;border-radius:50%;margin:42px auto 8px;background:var(--blue);border:3px solid #fff}
+.ms.done .dot{background:var(--yel);border-color:var(--yel)}
+.ms.key .dot{width:22px;height:22px;margin-top:39px;background:var(--yel);border-color:#fff}
+.ms .lab{position:absolute;left:0;right:0;top:0;font-weight:600}
+.ms .dt{color:#d6e6f5;white-space:nowrap}
+.ms.edgeL{transform:none;text-align:left}.ms.edgeL .dot{margin-left:0}
+.ms.edgeR{transform:translateX(-100%);text-align:right}.ms.edgeR .dot{margin-right:0}
+.meter{display:flex;gap:14px;align-items:center;padding:14px 0 18px;color:#d6e6f5;font-size:14px;flex-wrap:wrap}
+.meter .bar{flex:1 1 220px;height:10px;border-radius:5px;background:rgba(255,255,255,.22);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:var(--yel)}
+.meter b{color:#fff}
+nav{background:var(--deep);position:sticky;top:0;z-index:5}
+nav .wrap{display:flex;gap:4px;overflow-x:auto;padding-block:8px}
+nav button{flex:none;font:600 15px Inter,sans-serif;color:#d6e6f5;background:transparent;border:0;border-radius:8px 8px 0 0;padding:12px 16px;min-height:44px;cursor:pointer}
+nav button[aria-selected=true]{background:var(--yel);color:#0d1b2a}
+nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+main{padding-block:28px 64px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:clamp(16px,3vw,28px);margin-bottom:20px}
+.lead{color:var(--quiet);margin:0 0 18px;max-width:72ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px 18px}
+.grid .wide{grid-column:1/-1}
+label{display:block;font-weight:600;font-size:14px}
+label small{font-weight:400;color:var(--quiet)}
+input,select,textarea{display:block;width:100%;margin-top:6px;font:16px Inter,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-height:44px}
+textarea{min-height:76px;resize:vertical}
+.btn{font:600 15px Inter,sans-serif;border-radius:8px;padding:10px 16px;min-height:44px;cursor:pointer;border:1px solid var(--blue2);background:transparent;color:var(--blue2)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.del{border-color:var(--red);color:var(--red)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tcard{border-top:4px solid var(--yel)}
+.tcard .row{justify-content:space-between;margin-bottom:14px}
+.alerts{display:grid;gap:8px;margin-bottom:20px}
+.al{border-radius:10px;padding:12px 14px;border:1px solid var(--line);background:var(--paper);font-size:15px}
+.al.err{border-color:var(--red);border-left:6px solid var(--red)}
+.al.warn{border-left:6px solid var(--yel)}
+.al.ok{border-left:6px solid var(--ok)}
+.sample{font-size:14px;background:var(--tint);border-radius:10px;padding:10px 14px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.cl{list-style:none;margin:0;padding:0}
+.cl li{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.cl input{width:22px;height:22px;min-height:0;margin:2px 0 0;accent-color:var(--blue)}
+.cl .t{font-weight:600}
+.cl .n{color:var(--quiet);font-size:14px}
+.cl li.on .t{color:var(--quiet);text-decoration:line-through}
+.prog{display:flex;align-items:center;gap:12px;margin:6px 0 10px;font-size:14px;color:var(--quiet)}
+.prog .bar{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.prog .bar i{display:block;height:100%;background:var(--blue2)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px;align-items:start}
+.docs{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:20px;align-items:start}
+.doclist{display:grid;gap:6px}
+.doclist button{text-align:left;font:500 15px Inter,sans-serif;padding:10px 12px;min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.doclist button[aria-pressed=true]{border-color:var(--blue2);background:var(--tint);font-weight:600}
+.sheet{background:#fff;color:#111;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.18);padding:clamp(18px,4vw,48px);font:15px/1.6 Inter,sans-serif;overflow-x:auto}
+.sheet p{margin:0 0 12px}
+.sheet h3{margin:0 0 14px;color:#111}
+.sheet table{border-collapse:collapse;width:100%;font-size:14px}
+.sheet td,.sheet th{border:1px solid #bbb;padding:6px 8px;text-align:left;vertical-align:top}
+.sheet .hl{background:#fff3b0}
+.plan{list-style:none;margin:0;padding:0}
+.plan li{display:grid;grid-template-columns:max-content 1fr;gap:4px 18px;padding:12px 0;border-top:1px solid var(--line)}
+.plan .d{font:600 17px "Familjen Grotesk",sans-serif;white-space:nowrap;color:var(--blue2)}
+.plan li.past .d{color:var(--quiet)}
+.plan li.hard .d{color:var(--red)}
+.plan .w{color:var(--quiet);font-size:14px}
+table.fees{border-collapse:collapse;width:100%}
+.fees td,.fees th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+.fees td.n,.fees th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fees tr.tot td{font-weight:700;border-bottom:0}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+.toast.show{opacity:1}
+.foot{color:var(--quiet);font-size:14px}
+.foot a{color:var(--blue2)}
+[hidden]{display:none!important}
+@media(max-width:760px){.docs{grid-template-columns:minmax(0,1fr)}.doclist{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}
+@media(max-width:600px){.count{text-align:left}.ms{width:84px;font-size:12px}.ms .lab{font-size:12px}.track{height:124px}}
+@media(prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Sweden visit visa helper</h1>
+        <p class="sub">For family visiting from Sri Lanka. Apply at VFS Global Colombo; the Embassy of Sweden in New Delhi decides.</p>
+      </div>
+      <div class="count" id="count"></div>
+    </div>
+    <div class="track" id="track" role="group" aria-label="Timeline to arrival"></div>
+    <div class="meter" id="meter"></div>
+  </div>
+</header>
+<nav aria-label="Sections"><div class="wrap" role="tablist" id="tabs">
+  <button type="button" role="tab" data-v="trip">1. Trip &amp; host</button>
+  <button type="button" role="tab" data-v="travellers">2. Travellers</button>
+  <button type="button" role="tab" data-v="checklist">3. Checklists</button>
+  <button type="button" role="tab" data-v="letters">4. Letters</button>
+  <button type="button" role="tab" data-v="plan">5. Plan &amp; fees</button>
+  <button type="button" role="tab" data-v="data">Save / move data</button>
+</div></nav>
+<main class="wrap">
+  <div class="sample" id="sampleBar" hidden><span>You're looking at example details (the Perera family). Replace them with your own, or start blank.</span><button type="button" class="btn" id="blankBtn">Start with blank details</button></div>
+  <div class="alerts" id="alerts"></div>
+
+  <section data-view="trip">
+    <div class="panel">
+      <h2>The trip</h2>
+      <p class="lead">These dates go on every form and letter. Keep the stay at 90 days or less.</p>
+      <div class="grid" id="tripF"></div>
+    </div>
+    <div class="panel">
+      <h2>You, the host in Sweden</h2>
+      <p class="lead">Used for invitation form 241011 and your cover letter.</p>
+      <div class="grid" id="hostF"></div>
+    </div>
+  </section>
+
+  <section data-view="travellers">
+    <div id="travList"></div>
+    <button type="button" class="btn pri" id="addT">Add another traveller</button>
+  </section>
+
+  <section data-view="checklist">
+    <p class="lead">Built from the Embassy of Sweden's Visiting Family/Friends checklist for Sri Lanka. Tick items as they're ready; progress is saved in this browser.</p>
+    <div class="cols" id="checks"></div>
+  </section>
+
+  <section data-view="letters">
+    <div class="docs">
+      <div class="doclist" id="doclist" role="group" aria-label="Documents"></div>
+      <div>
+        <div class="row" style="margin-bottom:12px">
+          <button type="button" class="btn pri" id="copyDoc">Copy text</button>
+          <button type="button" class="btn" id="dlDoc" hidden>Download as Word (.doc)</button>
+          <button type="button" class="btn" id="dlAll" hidden>Download all documents</button>
+        </div>
+        <div class="sheet" id="sheet"></div>
+        <p class="foot">Highlighted text is missing; fill it in under Trip &amp; host or Travellers. Print and sign each letter by hand.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-view="plan">
+    <div class="cols">
+      <div class="panel"><h2>Your timeline</h2><p class="lead">Worked back from the arrival date. Red dates are hard limits.</p><ul class="plan" id="plan"></ul></div>
+      <div class="panel"><h2>Fees at VFS Colombo</h2><p class="lead">Paid at the centre in cash or by card. Not refunded if the visa is refused.</p><div style="overflow-x:auto"><table class="fees" id="fees"></table></div>
+      <p class="foot">Fees as listed by VFS Global Sri Lanka on 27 Nov 2026. LKR amounts follow the Embassy's exchange rate and can change.</p></div>
+    </div>
+  </section>
+
+  <section data-view="data">
+    <div class="panel">
+      <h2>Save and move your data</h2>
+      <p class="lead">Everything you type stays in this browser on this device; nothing is sent to a server. To continue on another device or share with family, export a file and import it there.</p>
+      <div class="row">
+        <button type="button" class="btn pri" id="exp" hidden>Export data file</button>
+        <button type="button" class="btn" id="copyData">Copy data as text</button>
+        <label class="btn" style="display:inline-flex;align-items:center">Import data file<input type="file" id="imp" accept=".json,application/json" hidden></label>
+        <button type="button" class="btn del" id="wipe">Erase all details</button>
+      </div>
+      <div id="wipeAsk" class="al err" style="margin-top:14px" hidden>Erase every detail and tick in this browser? <button type="button" class="btn del" id="wipeYes">Yes, erase</button> <button type="button" class="btn" id="wipeNo">Cancel</button></div>
+    </div>
+    <div class="panel foot">
+      <h3 style="margin-bottom:8px">Official sources</h3>
+      <p><a href="https://visa.vfsglobal.com/lka/en/swe">VFS Global – Sweden in Sri Lanka</a> · <a href="https://visa.vfsglobal.com/lka/en/swe/book-an-appointment">Book an appointment</a> · <a href="https://assets.ctfassets.net/xxg4p8gt3sg6/4t6pINDUK6VbiEThiQgoTJ/1388464ec236abd28beea855a18f7212/Visiting_Relatives_And_Friends_Visa.pdf">Embassy checklist (PDF)</a> · <a href="https://assets.ctfassets.net/xxg4p8gt3sg6/1bgBfBR18DvGYHd9bhvFpE/de669d6afd5657f806bbbcce23209f86/sweden-visa-application-form-english.pdf">Application form 119031</a> · <a href="https://assets.ctfassets.net/xxg4p8gt3sg6/5qdZit4VeQr6yGII56mxxE/f2f989a998bfb9b6e47ed2380642fd94/Invitation_%C3%A2___Before_application_for_Schengen_visa_-_241011.pdf">Invitation form 241011</a> · <a href="https://www.skatteverket.se/privat/folkbokforing/personbevis/personbevisen/invitationinbjudan.5.361dc8c15312eff6fd15ea3.html">Skatteverket personbevis "Inbjudan"</a> · <a href="https://www.migrationsverket.se/en/you-want-to-apply/visiting-sweden/visiting-sweden-for-up-to-90-days-entry-visa/flikar/important-to-know.html">Migrationsverket – visits up to 90 days</a></p>
+      <p>Rules checked 27 November 2026. This helper organises your documents; it does not guarantee a visa. The Embassy may ask for more.</p>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+{
+const LS='sweden-visa-helper-v1';
+const FEE={adult:34532,child:17266,vfs:24440};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const now=new Date();
+const TODAY=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+const D=s=>{if(!s||!/^\d{4}-\d{2}-\d{2}$/.test(s))return null;const [y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d)};
+const iso=t=>new Date(t).toISOString().slice(0,10);
+const add=(s,n)=>iso(D(s)+n*864e5);
+const addM=(s,n)=>{const [y,m,d]=s.split('-').map(Number);return iso(Date.UTC(y,m-1+n,d))};
+const days=(a,b)=>Math.round((D(b)-D(a))/864e5);
+const fmt=s=>{const t=D(s);if(t===null)return '';const d=new Date(t);return d.getUTCDate()+' '+MON[d.getUTCMonth()]+' '+d.getUTCFullYear()};
+const age=(dob,ref)=>{if(!D(dob))return null;const [y,m,d]=dob.split('-').map(Number);const [Y,M,DD]=ref.split('-').map(Number);return Y-y-((M<m||(M===m&&DD<d))?1:0)};
+const lkr=n=>'LKR '+n.toLocaleString('en-US');
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+const SAMPLE={sample:true,checks:{},
+ trip:{arrive:'2027-04-15',depart:'2027-06-28',from:'Colombo (CMB)',to:'Stockholm Arlanda (ARN)',flightOut:'',flightBack:'',purpose:'a family visit, to spend time with us and their grandchildren',payer:'host',plans:'Family time at home in Uppsala, day trips to Stockholm',other:''},
+ host:{name:'Kasun Perera',gender:'male',pnr:'19880312-1234',street:'Svartbäcksgatan 10',city:'753 20 Uppsala',phone:'+46 70 123 45 67',email:'kasun.perera@example.com',status:'citizen',job:'Software engineer',employer:'Example Tech AB',salary:'52000'},
+ travellers:[
+  {id:'t1',name:'Sunil Perera',relation:'Father',dob:'1956-06-02',nic:'195615400123',passport:'N1234567',issued:'2022-03-10',expiry:'2032-03-09',address:'No. 24, Temple Road, Kandy',phone:'+94 77 123 4567',status:'retired',occupation:'Ceylon Electricity Board',income:'85000',ties:'I own our family home in Kandy, and our younger daughter and her family live near us.'},
+  {id:'t2',name:'Kamala Perera',relation:'Mother',dob:'1959-11-20',nic:'195982500456',passport:'N7654321',issued:'2021-08-05',expiry:'2031-08-04',address:'No. 24, Temple Road, Kandy',phone:'+94 77 765 4321',status:'retired',occupation:'teaching (Government school)',income:'60000',ties:'Our home in Kandy is jointly owned with my husband, and our younger daughter lives nearby.'}]};
+const blankT=()=>({id:uid(),name:'',relation:'Father',dob:'',nic:'',passport:'',issued:'',expiry:'',address:'',phone:'',status:'retired',occupation:'',income:'',ties:''});
+const BLANK=()=>({sample:false,checks:{},trip:{arrive:'',depart:'',from:'Colombo (CMB)',to:'Stockholm Arlanda (ARN)',flightOut:'',flightBack:'',purpose:'a family visit',payer:'host',plans:'',other:''},host:{name:'',gender:'male',pnr:'',street:'',city:'',phone:'',email:'',status:'citizen',job:'',employer:'',salary:''},travellers:[blankT()]});
+
+let S;
+try{S=JSON.parse(localStorage.getItem(LS)||'null')}catch(e){S=null}
+if(!S&&window.claude?.hot?.data?.trip)S=window.claude.hot.data;
+if(!S||!S.trip)S=JSON.parse(JSON.stringify(SAMPLE));
+window.claude?.hot?.snapshot?.(()=>S);
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
+
+const TRIP_F=[['arrive','Arrival in Sweden','date'],['depart','Departure from Sweden','date'],['from','Flying from'],['to','Arriving at'],['flightOut','Outbound flight','text','e.g. UL 503 via Doha'],['flightBack','Return flight','text'],
+ ['payer','Who pays','select',[['host','Host pays everything'],['accom','Travellers pay flights; host pays stay and daily costs'],['self','Travellers pay; host gives free accommodation']]],
+ ['purpose','Purpose of the visit','text'],['plans','Plans during the stay (for the itinerary)','textarea'],['other','Other Schengen countries, if any','text','Sweden must be the main destination']];
+const HOST_F=[['name','Full name'],['gender','You are their','select',[['male','Son / brother (male)'],['female','Daughter / sister (female)']]],['pnr','Personal identity number','text','YYYYMMDD-XXXX'],['status','Status in Sweden','select',[['citizen','Swedish citizen'],['permanent','Permanent residence permit'],['temporary','Temporary residence permit']]],
+ ['street','Street address'],['city','Postcode and city'],['phone','Phone'],['email','Email'],['job','Job title'],['employer','Employer'],['salary','Monthly gross salary (SEK)','text']];
+const TRAV_F=[['name','Full name exactly as in passport'],['relation','Relationship to the host','select',['Father','Mother','Father-in-law','Mother-in-law','Brother','Sister','Other relative','Friend'].map(x=>[x,x])],['dob','Date of birth','date'],['nic','NIC number'],
+ ['passport','Passport number'],['issued','Passport issued','date'],['expiry','Passport expires','date'],['phone','Phone'],['address','Home address in Sri Lanka','text'],
+ ['status','Work status','select',[['retired','Retired / pensioner'],['employed','Employed'],['self','Self-employed'],['other','Other (supported by family)']]],['occupation','Employer, business or former employer'],['income','Monthly pension or income (LKR)'],
+ ['ties','Ties to Sri Lanka (for the cover letter)','textarea','Home, family staying behind, responsibilities']];
+
+const field=(f,val,attrs)=>{const [k,lab,type='text',opt]=f;const wide=type==='textarea'||k==='address'||k==='purpose'||k==='ties'?' class="wide"':'';const id=attrs.replace(/\W/g,'')+k;
+ let c;if(type==='select')c=`<select id="${id}" ${attrs} data-f="${k}">${opt.map(([v,l])=>`<option value="${esc(v)}"${v===val?' selected':''}>${esc(l)}</option>`).join('')}</select>`;
+ else if(type==='textarea')c=`<textarea id="${id}" ${attrs} data-f="${k}" placeholder="${esc(opt||'')}">${esc(val)}</textarea>`;
+ else c=`<input id="${id}" type="${type}" ${attrs} data-f="${k}" value="${esc(val)}" placeholder="${esc(type==='text'?opt||'':'')}">`;
+ return `<div${wide}><label for="${id}">${esc(lab)}</label>${c}</div>`};
+const renderForms=()=>{
+ $('#tripF').innerHTML=TRIP_F.map(f=>field(f,S.trip[f[0]],'data-s="trip"')).join('');
+ $('#hostF').innerHTML=HOST_F.map(f=>field(f,S.host[f[0]],'data-s="host"')).join('');
+ $('#travList').innerHTML=S.travellers.map((t,i)=>`<div class="panel tcard"><div class="row"><h2>Traveller ${i+1}${t.name?': '+esc(t.name):''}</h2>${S.travellers.length>1?`<button type="button" class="btn del" data-rm="${esc(t.id)}">Remove</button>`:''}</div><div class="grid">${TRAV_F.map(f=>field(f,t[f[0]],`data-t="${esc(t.id)}"`)).join('')}</div></div>`).join('');
+ $('#sampleBar').hidden=!S.sample};
+
+const T=id=>S.travellers.find(t=>t.id===id);
+const isMinor=t=>{const a=age(t.dob,TODAY);return a!==null&&a<18};
+const hostWord=t=>{const m=S.host.gender==='male';return {Father:m?'son':'daughter',Mother:m?'son':'daughter','Father-in-law':m?'son-in-law':'daughter-in-law','Mother-in-law':m?'son-in-law':'daughter-in-law',Brother:m?'brother':'sister',Sister:m?'brother':'sister','Other relative':'relative',Friend:'friend'}[t.relation]||'relative'};
+
+const hostItems=()=>{const n=S.travellers.length,rels=S.travellers.map(t=>t.relation),it=[];
+ it.push(['h241011',`Invitation form 241011 – ${n} ${n>1?'forms, one per traveller':'form'}`,'Fill in on a computer, sign by hand. One per applicant.']);
+ it.push(['hpb','Personbevis "Inbjudan" from Skatteverket','Order by post first; must be no older than 3 months on the submission day. No stamp needed.']);
+ it.push(['hid','Copy of your passport or Swedish ID card','A residence permit card alone does not count as ID.']);
+ if(S.host.status!=='citizen')it.push(['hrp','Copy of your residence permit card, front and back','Needed because you are not a Swedish citizen.']);
+ if(S.trip.payer!=='self'){it.push(['hpay','Your last 3 months of payslips (or pension statements)','Shows you can support the visit.']);it.push(['hbank','Your last 3 months of bank statements','']);}
+ const k=[];if(rels.some(r=>r==='Father'||r==='Mother'))k.push('your birth certificate naming your parents');if(rels.some(r=>r.includes('in-law')))k.push("your spouse's birth certificate and your marriage certificate");if(rels.some(r=>r==='Brother'||r==='Sister'))k.push('your birth certificate and your sibling\'s, showing the same parents');if(rels.includes('Other relative'))k.push('certificates linking you through the family');
+ if(k.length)it.push(['hkin','Kinship proof: '+k.join('; '),'Sri Lankan certificates in English, or with an English translation naming the translator and date.']);
+ it.push(['hcov','Host cover letter, signed','Generated under Letters.']);
+ it.push(['hemp','Optional: employment certificate (anställningsintyg) and rental contract or deed','Strengthens the invitation.']);
+ it.push(['hsend','Pack sent to Sri Lanka (scans by email, originals by courier)','Keep a scanned copy yourself.']);
+ return it};
+const travItems=t=>{const it=[['pass','Current passport','Valid 3 months after the return date, issued within 10 years, 2 blank pages.'],['old','All previous passports','Whatever their condition; a note if one is lost.'],['photo','One photo, white background, 35–40 mm wide','Under 6 months old, no teeth showing, no tinted glasses.'],['form','Application form 119031, typed, printed back-to-back, signed','Use the editable PDF on the VFS site.'],['ins','Travel medical insurance, €30,000, whole trip, all Schengen countries','Credit-card insurance is not accepted.'],['fly','Return flight reservation','A reservation only; buy tickets after the visa.'],['bank','Bank statements for the last 3 months','Explain any large recent deposits.'],['bal','Bank balance confirmation letter','From the same bank, recent date.']];
+ if(t.status==='retired')it.push(['pen','Pension proof','3 months of bank statements showing the pension, or the pensioner book.']);
+ if(t.status==='employed'){it.push(['pay','Payslips for the last 3 months','']);it.push(['con','Employment contract and EPF proof','']);it.push(['leave','Employer letter confirming approved leave','Paid or unpaid, with the travel dates.']);}
+ if(t.status==='self'){it.push(['breg','Business registration','']);it.push(['bbank','Business bank statements for the last 3 months','']);}
+ if(t.status==='other')it.push(['sup','Proof of who supports you financially','For example a family member\'s bank statements and a letter.']);
+ it.push(['gn','Grama Niladhari letter certified by the Divisional Secretary','Proof of residence or property in Sri Lanka.']);
+ if(isMinor(t))it.push(['minor','Consent letter signed by both parents (or the absent parent)','Plus birth certificate; required for under-18s.']);
+ it.push(['copies','Copies of passport biodata page and all used pages','A4, unstapled.'],['deeds','Optional: property deeds or other proof of ties','Helps show you will return.'],['cov','Applicant cover letter, signed','Generated under Letters.'],['hpack','Copy of the host pack (form 241011 and attachments)','From the host checklist.'],['chk','Embassy checklist, ticked and signed','Goes on top of the file.']);
+ return it};
+
+const allKeys=()=>[...hostItems().map(i=>'h:'+i[0]),...S.travellers.flatMap(t=>travItems(t).map(i=>'t:'+t.id+':'+i[0]))];
+const prog=keys=>{const d=keys.filter(k=>S.checks[k]).length;return [d,keys.length]};
+const progHtml=(d,n)=>`<div class="prog"><div class="bar"><i style="width:${n?d/n*100:0}%"></i></div><span>${d} of ${n} ready</span></div>`;
+const clList=(items,pre)=>`<ul class="cl">${items.map(([id,t,n])=>{const k=pre+id,on=!!S.checks[k];return `<li class="${on?'on':''}"><input type="checkbox" id="c-${esc(k)}" data-c="${esc(k)}"${on?' checked':''}><label for="c-${esc(k)}"><span class="t">${esc(t)}</span>${n?`<br><span class="n">${esc(n)}</span>`:''}</label></li>`}).join('')}</ul>`;
+const renderChecks=()=>{const h=hostItems();
+ $('#checks').innerHTML=`<div class="panel"><h2>Host in Sweden${S.host.name?' – '+esc(S.host.name):''}</h2>${progHtml(...prog(h.map(i=>'h:'+i[0])))}${clList(h,'h:')}</div>`+S.travellers.map((t,i)=>{const it=travItems(t);return `<div class="panel"><h2>${esc(t.name||'Traveller '+(i+1))}</h2>${progHtml(...prog(it.map(x=>'t:'+t.id+':'+x[0])))}${clList(it,'t:'+t.id+':')}</div>`}).join('')};
+
+const plan=()=>{const A=S.trip.arrive;if(!D(A))return [];const sub=add(A,-42);
+ return [[add(A,-84),'Host orders personbevis "Inbjudan"','By post from Skatteverket; it must be under 3 months old at submission.'],[add(A,-77),'Host completes form 241011 and cover letter','One form per traveller.'],[add(A,-70),'Host pack sent to Sri Lanka','Scans by email, originals by courier.'],[add(A,-56),'Book VFS appointments; Sri Lankan documents ready','Bank letter, Grama Niladhari letter, translations.'],[add(A,-49),'Buy insurance; make flight reservation','Do not pay for tickets yet.'],[addM(A,-6),'Earliest day to submit','No more than 6 months before travel.','info'],[sub,'Target: submit at VFS Colombo','Leaves time for 15 days processing plus 6–10 days courier each way.','key'],[add(sub,30),'Expected: passports back with decision','Usually 3–5 weeks after submission.'],[add(A,-15),'Last day the Embassy accepts the application','Later than this risks rejection.','hard'],[A,'Arrival in Sweden','Buy tickets once the visa is in the passport.','key'],...(D(S.trip.depart)?[[S.trip.depart,'Departure from Sweden','']]:[])].sort((a,b)=>D(a[0])-D(b[0]))};
+const renderPlan=()=>{const p=plan();$('#plan').innerHTML=p.length?p.map(([d,t,w,c])=>`<li class="${D(d)<D(TODAY)?'past':''} ${c==='hard'?'hard':''}"><span class="d">${esc(fmt(d))}</span><span><b>${esc(t)}</b>${w?`<br><span class="w">${esc(w)}</span>`:''}</span></li>`).join(''):'<li><span class="d">–</span><span>Add an arrival date under Trip &amp; host.</span></li>';
+ let tot=0;const rows=S.travellers.map((t,i)=>{const a=age(t.dob,TODAY);const v=a===null||a>=12?FEE.adult:a>=6?FEE.child:0;tot+=v+FEE.vfs;return `<tr><td>${esc(t.name||'Traveller '+(i+1))}${a===null?' <small>(age unknown, adult fee)</small>':''}</td><td class="n">${lkr(v)}</td><td class="n">${lkr(FEE.vfs)}</td><td class="n">${lkr(v+FEE.vfs)}</td></tr>`}).join('');
+ $('#fees').innerHTML=`<thead><tr><th>Traveller</th><th class="n">Visa fee</th><th class="n">VFS fee</th><th class="n">Total</th></tr></thead><tbody>${rows}<tr class="tot"><td>Total</td><td></td><td></td><td class="n">${lkr(tot)}</td></tr></tbody>`};
+
+const renderHero=()=>{const A=S.trip.arrive,ok=D(A)!==null;const left=ok?days(TODAY,A):null;
+ $('#count').innerHTML=ok?(left>=0?`<b>${left}</b><span>days until arrival on ${esc(fmt(A))}</span>`:`<b>–</b><span>arrival date has passed</span>`):`<b>–</b><span>add your travel dates</span>`;
+ const [d,n]=prog(allKeys());$('#meter').innerHTML=`<b>${d} of ${n}</b> documents ready<div class="bar"><i style="width:${n?d/n*100:0}%"></i></div><span>${S.travellers.length} traveller${S.travellers.length>1?'s':''}</span>`;
+ if(!ok){$('#track').innerHTML='<div class="rail"></div>';return}
+ const sub=add(A,-42),pts=[[TODAY,'Today'],[add(A,-84),'Order personbevis'],[sub,'Submit at VFS'],[add(sub,30),'Decision back'],[A,'Arrival']].filter((p,i)=>i===0||D(p[0])>=D(TODAY)||i===4);
+ const lo=Math.min(...pts.map(p=>D(p[0]))),hi=Math.max(...pts.map(p=>D(p[0])));const X=s=>hi>lo?(D(s)-lo)/(hi-lo)*100:0;
+ $('#track').innerHTML=`<div class="rail"><i style="width:${X(TODAY)}%"></i></div>`+pts.map(([s,l],i)=>{const x=X(s);const cls=(i===0?'done ':'')+(l==='Arrival'||l==='Submit at VFS'?'key ':'')+(x<8?'edgeL':x>92?'edgeR':'');return `<div class="ms ${cls}" style="left:${x}%"><span class="lab">${esc(l)}</span><span class="dot"></span><span class="dt">${esc(i===0?'':fmt(s))}</span></div>`}).join('')};
+
+const renderAlerts=()=>{const a=[],{arrive:A,depart:B}=S.trip;
+ if(!D(A)||!D(B))a.push(['warn','Add arrival and departure dates under Trip &amp; host to unlock the timeline.']);
+ else{const len=days(A,B)+1;if(len>90)a.push(['err',`The stay is ${len} days. A Schengen visa allows at most 90 days in any 180; shorten it or apply for a visitor's residence permit instead.`]);if(len<1)a.push(['err','Departure is before arrival.']);
+  const left=days(TODAY,A);if(left<15)a.push(['err','Arrival is less than 15 days away; the Embassy requires submission at least 15 days before the visit.']);else if(left<42)a.push(['warn',`Only ${left} days to arrival. Book the earliest VFS slot; processing plus courier usually takes 3–5 weeks.`]);
+  if(D(addM(A,-6))>D(TODAY))a.push(['ok',`Applications open on ${fmt(addM(A,-6))} (6 months before arrival). Prepare documents now.`]);
+  S.travellers.forEach((t,i)=>{const nm=esc(t.name||'Traveller '+(i+1));if(D(t.expiry)&&D(t.expiry)<D(addM(B,3)))a.push(['err',`${nm}'s passport expires ${esc(fmt(t.expiry))}; it must be valid until at least ${esc(fmt(addM(B,3)))}. Renew it before applying.`]);if(D(t.issued)&&D(t.issued)<D(addM(TODAY,-120)))a.push(['err',`${nm}'s passport was issued more than 10 years ago; it is not accepted.`])})}
+ $('#alerts').innerHTML=a.map(([c,m])=>`<div class="al ${c}">${m}</div>`).join('')};
+
+const v=(x,ph)=>x?esc(x):`<span class="hl">[${esc(ph)}]</span>`;
+const vd=(x,ph)=>D(x)?esc(fmt(x)):`<span class="hl">[${esc(ph)}]</span>`;
+const list=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a.at(-1);
+const stayLen=()=>D(S.trip.arrive)&&D(S.trip.depart)?days(S.trip.arrive,S.trip.depart)+1:null;
+const H=()=>S.host;
+const nf=x=>/^\d{4,}$/.test(String(x||'').trim())?Number(x).toLocaleString('en-US'):x;
+const town=()=>(S.host.city||'').replace(/^\s*\d[\d\s]*/,'').trim();
+const hostStatus=()=>({citizen:'a Swedish citizen',permanent:'a resident of Sweden with a permanent residence permit',temporary:'a resident of Sweden with a residence permit'})[H().status];
+const docHost=()=>{const h=H(),tr=S.travellers,n=stayLen();
+ const who=tr.map(t=>`my ${esc((t.relation||'').toLowerCase())}, ${v(t.name,'name')} (passport ${v(t.passport,'passport no.')})`);
+ const pay={host:'I will cover all costs of the visit, including accommodation, food, local travel and any other expenses.',accom:'They will pay for their own flights and travel insurance. I will provide accommodation and cover their daily expenses during the stay.',self:'They will cover their own travel costs from their savings, and I will provide accommodation free of charge.'}[S.trip.payer];
+ return `<p>${v(h.name,'your full name')}<br>${v(h.street,'street address')}, ${v(h.city,'postcode and city')}, Sweden<br>Personal identity number: ${v(h.pnr,'YYYYMMDD-XXXX')} · Phone: ${v(h.phone,'phone')} · Email: ${v(h.email,'email')}</p><p>${esc(fmt(TODAY))}</p><p>To: The Embassy of Sweden, New Delhi<br>Via: VFS Global Sweden Visa Application Centre, Colombo</p><p><b>Subject: Invitation for ${list(tr.map(t=>v(t.name,'name')))} – Schengen visit visa</b></p><p>Dear Sir/Madam,</p>
+ <p>I, ${v(h.name,'your name')}, am ${hostStatus()} living in ${v(town(),'city')}. I invite ${list(who)}, residing in Sri Lanka, to visit me in Sweden from ${vd(S.trip.arrive,'arrival date')} to ${vd(S.trip.depart,'departure date')}${n?` (${n} days)`:''}.</p>
+ <p>The purpose of the visit is ${v(S.trip.purpose,'purpose')}. ${tr.length>1?'They':esc(tr[0]?.name||'My guest')} will stay with me at my home at the address above for the whole visit.</p>
+ <p>${pay}${S.trip.payer!=='self'?` I work as ${v(h.job,'job title')} at ${v(h.employer,'employer')}, with a monthly gross salary of SEK ${v(nf(h.salary),'amount')}. My payslips and bank statements for the last three months are enclosed.`:''}</p>
+ <p>${tr.length>1?'My family members have':'My guest has'} strong ties to Sri Lanka and will return there at the end of the visit, on ${vd(S.trip.depart,'departure date')}.</p>
+ <p>Enclosed: invitation form 241011 for each applicant, personbevis "Inbjudan" from the Swedish Tax Agency, a copy of my ${H().status==='citizen'?'passport':'passport and residence permit'}, proof of income, and documents showing our family relationship.</p><p>Yours faithfully,</p><p><br>______________________<br>${v(h.name,'your name')}</p>`};
+const docApp=t=>{const others=S.travellers.filter(o=>o.id!==t.id),n=stayLen();
+ const st={retired:`I am retired${t.occupation?' after a career with '+esc(t.occupation):''} and receive a monthly pension of LKR ${v(nf(t.income),'amount')}.`,employed:`I work at ${v(t.occupation,'employer')} and earn LKR ${v(nf(t.income),'amount')} per month. My employer has approved leave for the travel period.`,self:`I run my own business, ${v(t.occupation,'business name')}, with a monthly income of about LKR ${v(nf(t.income),'amount')}.`,other:`I am supported financially by my family${t.occupation?' ('+esc(t.occupation)+')':''}.`}[t.status];
+ const pay={host:`${esc(H().name||'My host')} will cover my accommodation and expenses during the stay; I also have my own savings, as shown in my bank statements.`,accom:`I will pay for my flights and insurance, and ${esc(H().name||'my host')} will provide accommodation and cover daily expenses.`,self:`I will pay for the trip from my own savings, as shown in my bank statements, and will stay free of charge with ${esc(H().name||'my host')}.`}[S.trip.payer];
+ return `<p>${v(t.name,'full name as in passport')}<br>${v(t.address,'address in Sri Lanka')}<br>Passport: ${v(t.passport,'passport no.')} · NIC: ${v(t.nic,'NIC no.')} · Phone: ${v(t.phone,'phone')}</p><p>${esc(fmt(TODAY))}</p><p>To: The Embassy of Sweden, New Delhi</p><p><b>Subject: Schengen visit visa – family visit to Sweden, ${vd(S.trip.arrive,'arrival')} to ${vd(S.trip.depart,'departure')}</b></p><p>Dear Sir/Madam,</p>
+ <p>I am applying for a short-stay Schengen visa to visit my ${esc(hostWord(t))}, ${v(H().name,'host name')}, who lives in ${v(town(),'city')}, Sweden. I plan to arrive on ${vd(S.trip.arrive,'arrival date')} and return to Sri Lanka on ${vd(S.trip.depart,'departure date')}${n?` (${n} days)`:''}.${others.length?` I will travel together with ${list(others.map(o=>v(o.name,'name')))}, who ${others.length>1?'are':'is'} applying separately.`:''}</p>
+ <p>${st} ${t.ties?esc(t.ties):'My home and family are in Sri Lanka.'} These ties require my return after the visit.</p>
+ <p>During the stay I will live with ${v(H().name,'host name')} at ${v(H().street,'street address')}, ${v(H().city,'city')}. ${pay} I hold travel medical insurance for the whole trip.</p>
+ <p>I enclose all documents on the Embassy's checklist. Thank you for considering my application.</p><p>Yours faithfully,</p><p><br>______________________<br>${v(t.name,'name')}</p>`};
+const docItin=()=>{const tr=S.trip,adr=`${v(H().street,'street')}, ${v(H().city,'city')}`;const mid=D(tr.arrive)&&D(tr.depart)?`${esc(fmt(add(tr.arrive,1)))} – ${esc(fmt(add(tr.depart,-1)))}`:'<span class="hl">[dates]</span>';
+ return `<h3>Travel itinerary – ${list(S.travellers.map(t=>v(t.name,'name')))}</h3><table><thead><tr><th>Date</th><th>Plan</th><th>Overnight address</th></tr></thead><tbody><tr><td>${vd(tr.arrive,'arrival')}</td><td>Fly ${esc(tr.from)} → ${esc(tr.to)}${tr.flightOut?' on '+esc(tr.flightOut):''}</td><td>${adr}</td></tr><tr><td>${mid}</td><td>${v(tr.plans,'plans during the stay')}${tr.other?'<br>Also visiting: '+esc(tr.other):''}</td><td>${adr}</td></tr><tr><td>${vd(tr.depart,'departure')}</td><td>Fly ${esc(tr.to)} → ${esc(tr.from)}${tr.flightBack?' on '+esc(tr.flightBack):''}</td><td>–</td></tr></tbody></table><p style="margin-top:14px">Host in Sweden: ${v(H().name,'host name')}, ${adr}, phone ${v(H().phone,'phone')}.</p>`};
+const docIndex=t=>{const ti=Object.fromEntries(travItems(t).map(i=>[i[0],i])),pre='t:'+t.id+':';const box=k=>S.checks[k]?'☑':'☐';
+ const grp=[['Embassy checklist, ticked and signed',['chk']],['Current and previous passports',['pass','old']],['Photo',['photo']],['Application form 119031',['form']],['Travel medical insurance',['ins']],['Flight reservation and itinerary',['fly']],['Invitation pack from the host',['hpack']],['Proof of means and status',['pen','pay','con','leave','breg','bbank','sup','gn']],['Bank statements and balance letter',['bank','bal']],['Consent for a minor',['minor']],['Passport page copies',['copies']],['Cover letter and extra documents',['cov','deeds']]];
+ let i=0;const rows=grp.map(([g,ids])=>{const its=ids.filter(id=>ti[id]);if(!its.length)return '';i++;return `<tr><td>${i}</td><td><b>${esc(g)}</b><br>${its.map(id=>`${box(pre+id)} ${esc(ti[id][1])}`).join('<br>')}</td></tr>`}).join('');
+ return `<h3>Document index – ${v(t.name,'name')}, passport ${v(t.passport,'no.')}</h3><p>Order of documents in the file, following the Embassy of Sweden checklist.</p><table><thead><tr><th>#</th><th>Documents</th></tr></thead><tbody>${rows}</tbody></table>`};
+const docs=()=>[['host','Host cover letter',docHost],...S.travellers.map((t,i)=>['app-'+t.id,'Cover letter – '+(t.name||'Traveller '+(i+1)),()=>docApp(t)]),['itin','Travel itinerary',docItin],...S.travellers.map((t,i)=>['idx-'+t.id,'Document index – '+(t.name||'Traveller '+(i+1)),()=>docIndex(t)])];
+let cur='host';
+const renderLetters=()=>{const ds=docs();if(!ds.some(d=>d[0]===cur))cur='host';
+ $('#doclist').innerHTML=ds.map(([id,l])=>`<button type="button" data-doc="${esc(id)}" aria-pressed="${id===cur}">${esc(l)}</button>`).join('');
+ $('#sheet').innerHTML=ds.find(d=>d[0]===cur)[2]()};
+
+const renderAll=()=>{renderHero();renderAlerts();renderChecks();renderPlan();renderLetters()};
+
+const VIEWS=['trip','travellers','checklist','letters','plan','data'];
+const show=()=>{const h=location.hash.slice(1),vw=VIEWS.includes(h)?h:'trip';document.querySelectorAll('[data-view]').forEach(s=>s.hidden=s.dataset.view!==vw);document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===vw))};
+window.addEventListener('hashchange',show);
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){location.hash=b.dataset.v;show()}});
+
+const toastEl=$('#toast');let tt;const toast=m=>{toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove('show'),2600)};
+let timer;const changed=()=>{S.sample=false;$('#sampleBar').hidden=true;save();clearTimeout(timer);timer=setTimeout(renderAll,150)};
+document.addEventListener('input',e=>{const el=e.target,f=el.dataset.f;if(!f)return;if(el.dataset.s)S[el.dataset.s][f]=el.value;else if(el.dataset.t){const t=T(el.dataset.t);if(t)t[f]=el.value}else return;changed()});
+document.addEventListener('change',e=>{const el=e.target;if(el.dataset.c){S.checks[el.dataset.c]=el.checked;el.closest('li').classList.toggle('on',el.checked);save();renderHero();renderChecks();if(cur.startsWith('idx'))renderLetters()}else if(el.dataset.t&&el.dataset.f==='name')renderForms()});
+$('#travList').addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(b){S.travellers=S.travellers.filter(t=>t.id!==b.dataset.rm);changed();renderForms()}});
+$('#addT').addEventListener('click',()=>{const t=blankT();const p=S.travellers[0];if(p){t.address=p.address;t.relation=p.relation==='Father'?'Mother':p.relation==='Mother'?'Father':p.relation}S.travellers.push(t);changed();renderForms()});
+$('#blankBtn').addEventListener('click',()=>{S=BLANK();save();renderForms();renderAll();toast('Started with blank details')});
+$('#doclist').addEventListener('click',e=>{const b=e.target.closest('[data-doc]');if(b){cur=b.dataset.doc;renderLetters()}});
+const copy=async txt=>{try{await navigator.clipboard.writeText(txt);toast('Copied')}catch(e){toast('Copy was blocked; select the text and copy it manually')}};
+$('#copyDoc').addEventListener('click',()=>copy($('#sheet').innerText));
+$('#copyData').addEventListener('click',()=>copy(JSON.stringify(S,null,1)));
+const wordFile=(title,body)=>`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:4pt;vertical-align:top}.hl{background:#fff3b0}</style></head><body>${body}</body></html>`;
+let DL=null;
+const fname=s=>s.replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-')||'document';
+const saveFile=async(filename,data,type)=>{if(!DL)return;try{await DL.save({filename,data:new Blob([data],{type})});toast('Saved '+filename)}catch(e){toast('The download was not saved')}};
+$('#dlDoc').addEventListener('click',()=>{const d=docs().find(x=>x[0]===cur);saveFile(fname(d[1])+'.doc',wordFile(d[1],d[2]()),'application/msword')});
+$('#dlAll').addEventListener('click',()=>{const body=docs().map(d=>d[2]()).join('<br clear="all" style="page-break-before:always">');saveFile('Sweden-visa-documents.doc',wordFile('Sweden visa documents',body),'application/msword')});
+$('#exp').addEventListener('click',()=>saveFile('sweden-visa-data.json',JSON.stringify(S,null,1),'application/json'));
+$('#imp').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.trip||!d.host||!Array.isArray(d.travellers))throw 0;d.checks=d.checks||{};S=d;save();renderForms();renderAll();toast('Data imported')}catch(err){toast('That file is not a data file from this helper')}};r.readAsText(f);e.target.value=''});
+$('#wipe').addEventListener('click',()=>{$('#wipeAsk').hidden=false});
+$('#wipeNo').addEventListener('click',()=>{$('#wipeAsk').hidden=true});
+$('#wipeYes').addEventListener('click',()=>{S=BLANK();try{localStorage.removeItem(LS)}catch(e){}$('#wipeAsk').hidden=true;renderForms();renderAll();toast('All details erased')});
+
+renderForms();renderAll();show();
+window.claude?.use?.('downloads').then(d=>{if(d){DL=d;['#dlDoc','#dlAll','#exp'].forEach(s=>$(s).hidden=false)}}).catch(()=>{});
+}
+</script>
+</body>
+</html>
