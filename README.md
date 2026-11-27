@@ -89,12 +89,14 @@ The app uses semantic versions (`X.Y.Z`) from `package.json`, shown in the app's
 
 ### Branch protection on `main`
 
-A repository ruleset named **Protect main** enforces:
+A repository ruleset named **Protect main** ([`.github/rulesets/protect-main.json`](.github/rulesets/protect-main.json)) enforces:
 
 - a pull request for every change (no direct pushes, including admins)
 - the **test** and **version** checks passing, with the branch up to date with `main`
 - all review conversations resolved
 - no force pushes and no branch deletion
+
+To apply it: **Settings → Rules → Rulesets → New ruleset → Import a ruleset**, choose `protect-main.json`, then **Create**.
 
 No approving review is required, so a single maintainer can merge their own PRs. Raise `required_approving_review_count` in the ruleset once others contribute.
 
