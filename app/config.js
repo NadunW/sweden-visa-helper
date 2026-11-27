@@ -1,1 +1,1 @@
-window.APP_CONFIG = { googleClientId: "" };
+window.APP_CONFIG = { googleClientId: "", version: "dev" };

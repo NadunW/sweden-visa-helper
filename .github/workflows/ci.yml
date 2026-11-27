@@ -1,9 +1,10 @@
-name: CI and Pages
+name: CI and Release
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -28,10 +29,52 @@ jobs:
       - name: Run tests
         run: npm test
 
-  deploy:
-    # Publish the app to GitHub Pages after tests pass on main
+  version:
+    # Every PR must carry a new X.Y.Z version that has not been released yet
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check version bump
+        run: |
+          export BASE_VERSION=$(git show "origin/${{ github.base_ref }}:package.json" | jq -r .version)
+          export EXISTING_TAGS="$(git tag -l 'v*' | tr '\n' ' ')"
+          echo "Base version: $BASE_VERSION, PR version: $(jq -r .version package.json)"
+          node scripts/check-version.js
+
+  release:
+    # On merge to main: tag vX.Y.Z and publish a GitHub release
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: v
+        run: echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
+      - name: Create tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "::warning::Tag v$VERSION already exists; skipping release (deploy still runs)."
+            exit 0
+          fi
+          (cd app && zip -qr "../sweden-visa-helper-v$VERSION.zip" . -x config.js)
+          gh release create "v$VERSION" "sweden-visa-helper-v$VERSION.zip" \
+            --target "$GITHUB_SHA" --title "v$VERSION" --generate-notes
+
+  deploy:
+    # Publish the released version to GitHub Pages
+    needs: release
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -44,8 +87,10 @@ jobs:
       - name: Write runtime config
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          VERSION: ${{ needs.release.outputs.version }}
         run: |
-          printf 'window.APP_CONFIG = { googleClientId: %s };\n' "$(jq -Rn --arg v "$GOOGLE_CLIENT_ID" '$v')" > app/config.js
+          jq -n --arg id "$GOOGLE_CLIENT_ID" --arg v "$VERSION" '{googleClientId:$id, version:$v}' \
+            | sed '1s/^/window.APP_CONFIG = /; $s/$/;/' > app/config.js
           cat app/config.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
