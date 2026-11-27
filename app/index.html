@@ -220,6 +220,7 @@ table.fees{border-collapse:collapse;width:100%}
     </div>
   </section>
 </main>
+<footer class="wrap foot" id="ver" style="padding-bottom:28px"></footer>
 <div class="toast" id="toast" role="status"></div>
 <script>
 {
@@ -471,6 +472,7 @@ renderForms();renderAll();show();
 const nativeDL={save:async({filename,data})=>{const b=data instanceof Blob?data:new Blob([data]);const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return {status:'saved'}}};
 const dlp=window.claude?.use?window.claude.use('downloads'):Promise.resolve(nativeDL);Promise.resolve(dlp).then(d=>{DLknown=true;if(d){DL=d;['#dlDoc','#exp'].forEach(s=>$(s).hidden=false)}renderPkg()}).catch(()=>{DLknown=true;renderPkg()});
 initGoogle();
+$('#ver').textContent=CFG.version&&CFG.version!=='dev'?`Sweden Visa Helper v${CFG.version}`:'Sweden Visa Helper (development build)';
 }
 </script>
 </body>

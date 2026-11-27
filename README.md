@@ -75,7 +75,28 @@ npm run lint   # html-validate
 npm test       # jsdom tests with node:test (includes a simulated Google Drive)
 ```
 
-CI (GitHub Actions) runs lint and tests on every push and pull request; pushes to `main` then deploy to GitHub Pages.
+## Versioning and releases
+
+The app uses semantic versions (`X.Y.Z`) from `package.json`, shown in the app's footer.
+
+1. Work on a branch and open a pull request to `main`. Direct pushes to `main` are blocked.
+2. In the PR, bump the version:
+   - `npm run bump:patch` for fixes (1.0.0 → 1.0.1)
+   - `npm run bump:minor` for new features (1.0.0 → 1.1.0)
+   - `npm run bump:major` for breaking changes (1.0.0 → 2.0.0)
+3. The PR must pass two checks: **test** (lint and tests) and **version** (valid X.Y.Z, not lower than `main`, not already released).
+4. Merging runs **CI and Release** on `main`: tests, then a `vX.Y.Z` tag and GitHub release (notes generated from merged PRs, app ZIP attached), then deployment of that version to GitHub Pages.
+
+### Branch protection on `main`
+
+A repository ruleset named **Protect main** enforces:
+
+- a pull request for every change (no direct pushes, including admins)
+- the **test** and **version** checks passing, with the branch up to date with `main`
+- all review conversations resolved
+- no force pushes and no branch deletion
+
+No approving review is required, so a single maintainer can merge their own PRs. Raise `required_approving_review_count` in the ruleset once others contribute.
 
 ## Official sources (checked 27 Nov 2026)
 

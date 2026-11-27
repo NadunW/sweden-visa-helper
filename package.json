@@ -5,7 +5,11 @@
   "description": "Step-by-step helper for Sweden Schengen visit visa applications from Sri Lanka",
   "scripts": {
     "test": "node --test test/*.test.js",
-    "lint": "html-validate app/index.html"
+    "lint": "html-validate app/index.html",
+    "check-version": "node scripts/check-version.js",
+    "bump:patch": "npm version patch --no-git-tag-version",
+    "bump:minor": "npm version minor --no-git-tag-version",
+    "bump:major": "npm version major --no-git-tag-version"
   },
   "devDependencies": {
     "html-validate": "8.18.2",
