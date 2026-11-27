@@ -3,17 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { JSDOM } = require('jsdom');
-const JSZip = require('jszip');
-// Test-only shim: jsdom's ArrayBuffers come from another JS realm, which Node's JSZip
-// doesn't recognise. Browsers load JSZip in the page itself, so they don't need this.
-const origFile = JSZip.prototype.file;
-JSZip.prototype.file = function (name, data, opts) {
-  if (data && typeof data === 'object' && typeof data.byteLength === 'number' && !(data instanceof ArrayBuffer) && !ArrayBuffer.isView(data)) {
-    data = Buffer.from(new Uint8Array(data));
-  }
-  return arguments.length === 1 ? origFile.call(this, name) : origFile.call(this, name, data, opts);
-};
-
+const { JSZip } = require('./helpers');
 const html = fs.readFileSync(path.join(__dirname, '..', 'app', 'index.html'), 'utf8');
 let w, d, errors;
 const saved = [];

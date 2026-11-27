@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="config.js"></script>
 <style>
 /* VOICE everyday helper for a family task: calm, exact, reassuring
    IDEA a Swedish visa folder: blue cover, yellow tabs, paper sheets inside
@@ -112,6 +113,11 @@ table.fees{border-collapse:collapse;width:100%}
 .chip .x{border:0;background:transparent;color:var(--quiet);font-size:18px;line-height:1;width:32px;height:32px;border-radius:50%;cursor:pointer}
 .chip .x:hover{color:var(--red)}
 .pkg .row{justify-content:space-between;align-items:flex-start}
+.gbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-top:16px;font-size:14px;color:#d6e6f5}
+.gbtn{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:8px 16px;border:0;border-radius:22px;background:#fff;color:#1f1f1f;font:600 15px Inter,sans-serif;cursor:pointer}
+.gbtn svg{width:18px;height:18px;flex:none}
+.glink{background:transparent;border:0;color:#fff;text-decoration:underline;font:500 14px Inter,sans-serif;cursor:pointer;min-height:44px;padding:0 4px}
+.gdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--yel);margin-right:6px}
 .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
 .toast.show{opacity:1}
 .foot{color:var(--quiet);font-size:14px}
@@ -129,6 +135,7 @@ table.fees{border-collapse:collapse;width:100%}
       <div>
         <h1>Sweden visit visa helper</h1>
         <p class="sub">For family visiting from Sri Lanka. Apply at VFS Global Colombo; the Embassy of Sweden in New Delhi decides.</p>
+        <div class="gbar" id="gbar" hidden></div>
       </div>
       <div class="count" id="count"></div>
     </div>
@@ -142,7 +149,7 @@ table.fees{border-collapse:collapse;width:100%}
   <button type="button" role="tab" data-v="checklist">3. Checklists</button>
   <button type="button" role="tab" data-v="letters">4. Letters</button>
   <button type="button" role="tab" data-v="plan">5. Plan &amp; fees</button>
-  <button type="button" role="tab" data-v="data">Save / move data</button>
+  <button type="button" role="tab" data-v="data">Save &amp; sync</button>
 </div></nav>
 <main class="wrap">
   <div class="sample" id="sampleBar" hidden><span>You're looking at example details (the Perera family). Replace them with your own, or start blank.</span><button type="button" class="btn" id="blankBtn">Start with blank details</button></div>
@@ -197,14 +204,14 @@ table.fees{border-collapse:collapse;width:100%}
   <section data-view="data">
     <div class="panel">
       <h2>Save and move your data</h2>
-      <p class="lead">Everything you type stays in this browser on this device; nothing is sent to a server. To continue on another device or share with family, export a file and import it there.</p>
+      <p class="lead" id="dataLead">Everything you type stays in this browser on this device; nothing is sent to a server. To continue on another device or share with family, export a file and import it there.</p>
       <div class="row">
         <button type="button" class="btn pri" id="exp" hidden>Export data file</button>
         <button type="button" class="btn" id="copyData">Copy data as text</button>
         <label class="btn" style="display:inline-flex;align-items:center">Import data file<input type="file" id="imp" accept=".json,application/json" hidden></label>
         <button type="button" class="btn del" id="wipe">Erase all details</button>
       </div>
-      <div id="wipeAsk" class="al err" style="margin-top:14px" hidden>Erase every detail and tick in this browser? <button type="button" class="btn del" id="wipeYes">Yes, erase</button> <button type="button" class="btn" id="wipeNo">Cancel</button></div>
+      <div id="wipeAsk" class="al err" style="margin-top:14px" hidden>Erase every detail, tick and upload in this browser? Files already in your Google Drive stay there. <button type="button" class="btn del" id="wipeYes">Yes, erase</button> <button type="button" class="btn" id="wipeNo">Cancel</button></div>
     </div>
     <div class="panel foot">
       <h3 style="margin-bottom:8px">Official sources</h3>
@@ -248,7 +255,7 @@ try{S=JSON.parse(localStorage.getItem(LS)||'null')}catch(e){S=null}
 if(!S&&window.claude?.hot?.data?.trip)S=window.claude.hot.data;
 if(!S||!S.trip)S=JSON.parse(JSON.stringify(SAMPLE));
 window.claude?.hot?.snapshot?.(()=>S);
-const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
+const save=()=>{S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}if(typeof scheduleDrive==='function')scheduleDrive()};
 
 const TRIP_F=[['arrive','Arrival in Sweden','date'],['depart','Departure from Sweden','date'],['from','Flying from'],['to','Arriving at'],['flightOut','Outbound flight','text','e.g. UL 503 via Doha'],['flightBack','Return flight','text'],
  ['payer','Who pays','select',[['host','Host pays everything'],['accom','Travellers pay flights; host pays stay and daily costs'],['self','Travellers pay; host gives free accommodation']]],
@@ -308,8 +315,43 @@ const size=b=>b<1024?b+' B':b<1048576?Math.round(b/1024)+' KB':(b/1048576).toFix
 const filesFor=k=>FS.list.filter(f=>f.key===k);
 const idbOpen=()=>new Promise((res,rej)=>{try{const r=indexedDB.open('sweden-visa-helper-files',1);r.onupgradeneeded=()=>r.result.createObjectStore('files',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}});
 const idb=(mode,fn)=>new Promise((res,rej)=>{if(!FS.db)return res(null);try{const t=FS.db.transaction('files',mode),q=fn(t.objectStore('files'));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)}catch(e){rej(e)}});
-const addFiles=async(key,files)=>{for(const file of files){const rec={id:uid()+uid(),key,name:file.name||'scan',type:file.type,size:file.size,added:Date.now(),blob:file};try{await idb('readwrite',st=>st.put(rec))}catch(e){FS.mem=true}FS.list.push(rec)}};
-const delFile=async id=>{try{await idb('readwrite',st=>st.delete(id))}catch(e){}FS.list=FS.list.filter(f=>f.id!==id)};
+const addFiles=async(key,files)=>{for(const file of files){if(GD.on){try{FS.list.push(await driveAddFile(key,file));continue}catch(e){toast('Could not upload to Google Drive; kept in this browser')}}const rec={id:uid()+uid(),key,name:file.name||'scan',type:file.type,size:file.size,added:Date.now(),blob:file};try{await idb('readwrite',st=>st.put(rec))}catch(e){FS.mem=true}FS.list.push(rec)}};
+const delFile=async id=>{const f=FS.list.find(x=>x.id===id);if(f&&f.driveId){await gjson(`${DAPI}/${f.driveId}?fields=id`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({trashed:true})})}else{try{await idb('readwrite',st=>st.delete(id))}catch(e){}}FS.list=FS.list.filter(x=>x.id!==id)};
+const CFG=window.APP_CONFIG||{};
+const canDrive=!!CFG.googleClientId&&!window.claude?.use;
+const DAPI='https://www.googleapis.com/drive/v3/files',UAPI='https://www.googleapis.com/upload/drive/v3/files',FOLDER='Sweden Visa Helper',DATAF='visa-helper-data.json',FLAG=LS+'-drive';
+const GD={on:false,busy:false,pending:false,token:null,exp:0,email:'',folder:null,dataId:null,client:null,err:''};
+const wantsDrive=()=>{try{return localStorage.getItem(FLAG)==='1'}catch(e){return false}};
+const gfetch=async(url,opt={})=>{if(!GD.token||Date.now()>GD.exp){GD.on=false;renderDrive();throw new Error('auth')}const r=await fetch(url,{...opt,headers:{...(opt.headers||{}),Authorization:'Bearer '+GD.token}});if(r.status===401){GD.token=null;GD.on=false;renderDrive();throw new Error('auth')}if(!r.ok)throw new Error('Drive error '+r.status);return r};
+const gjson=async(url,opt)=>(await gfetch(url,opt)).json();
+const qs=x=>encodeURIComponent(x);
+const gUpload=async(meta,blob,id)=>{const fd=new FormData();fd.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));fd.append('file',blob);return gjson(`${UAPI}${id?'/'+id:''}?uploadType=multipart&fields=id,name,size,mimeType,appProperties`,{method:id?'PATCH':'POST',body:fd})};
+const keyLabel=k=>{const p=k.split(':');if(p[0]==='h'){const it=hostItems().find(i=>i[0]===p[1]);return 'Host - '+(it?short(it[1]):p[1])}const t=T(p[1]),it=t?travItems(t).find(i=>i[0]===p[2]):null;return clean(t&&t.name||'Traveller')+' - '+(it?short(it[1]):p[2])};
+const driveAddFile=async(key,file)=>{const orig=String(file.name||'scan').slice(0,100);const up=await gUpload({name:keyLabel(key)+' - '+orig,parents:[GD.folder],appProperties:{svh:'file',key,orig}},file);return {id:'d'+up.id,driveId:up.id,key,name:orig,type:file.type,size:file.size||Number(up.size||0),blob:null}};
+const driveSave=async()=>{if(!GD.on||!GD.folder)return;const r=await gUpload(GD.dataId?{}:{name:DATAF,parents:[GD.folder],appProperties:{svh:'data'}},new Blob([JSON.stringify(S)],{type:'application/json'}),GD.dataId);GD.dataId=r.id};
+let dsT;const scheduleDrive=()=>{if(!GD.on)return;clearTimeout(dsT);GD.pending=true;renderDrive();dsT=setTimeout(async()=>{try{await driveSave();GD.pending=false;GD.err=''}catch(e){GD.err=e.message==='auth'?'':'Not saved to Drive yet'}renderDrive()},1200)};
+const driveSync=async()=>{try{GD.email=(await gjson('https://www.googleapis.com/oauth2/v3/userinfo')).email||''}catch(e){if(e.message==='auth')throw e}
+ const f=await gjson(`${DAPI}?q=${qs(`mimeType='application/vnd.google-apps.folder' and name='${FOLDER}' and trashed=false`)}&fields=files(id)&spaces=drive`);
+ GD.folder=f.files&&f.files.length?f.files[0].id:(await gjson(`${DAPI}?fields=id`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:FOLDER,mimeType:'application/vnd.google-apps.folder'})})).id;
+ const ls=await gjson(`${DAPI}?q=${qs(`'${GD.folder}' in parents and trashed=false`)}&fields=files(id,name,size,mimeType,appProperties)&pageSize=1000&spaces=drive`),all=ls.files||[];
+ const df=all.find(x=>x.appProperties&&x.appProperties.svh==='data');
+ if(df){GD.dataId=df.id;const remote=await gjson(`${DAPI}/${df.id}?alt=media`);if(remote&&remote.trip&&Array.isArray(remote.travellers)&&(S.sample||!S.updatedAt||(remote.updatedAt||0)>=S.updatedAt)){remote.checks=remote.checks||{};S=remote;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}renderForms()}else await driveSave()}else await driveSave();
+ const local=FS.list.filter(x=>!x.driveId);
+ FS.list=all.filter(x=>x.appProperties&&x.appProperties.svh==='file').map(x=>({id:'d'+x.id,driveId:x.id,key:x.appProperties.key,name:x.appProperties.orig||x.name,type:x.mimeType,size:Number(x.size||0),blob:null}));
+ let moved=0;for(const x of local){try{FS.list.push(await driveAddFile(x.key,x.blob));moved++;try{await idb('readwrite',st=>st.delete(x.id))}catch(e){}}catch(e){FS.list.push(x)}}
+ if(moved)toast(`Moved ${moved} upload${moved>1?'s':''} to Google Drive`);renderAll()};
+const onToken=async resp=>{if(!resp||resp.error){toast('Google sign-in was cancelled');return}GD.token=resp.access_token;GD.exp=Date.now()+(Number(resp.expires_in||3600)-60)*1000;GD.on=true;GD.err='';try{localStorage.setItem(FLAG,'1')}catch(e){}GD.busy=true;renderDrive();try{await driveSync()}catch(e){GD.err=e.message==='auth'?'':'Could not reach Google Drive';if(e.message!=='auth')toast('Google Drive sync failed')}GD.busy=false;renderDrive()};
+const driveConnect=()=>{if(!GD.client){toast('Google sign-in is still loading');return}GD.client.requestAccessToken({prompt:wantsDrive()?'':'consent'})};
+const driveSignOut=async()=>{try{if(GD.token&&window.google?.accounts?.oauth2?.revoke)google.accounts.oauth2.revoke(GD.token,()=>{})}catch(e){}Object.assign(GD,{on:false,token:null,exp:0,email:'',folder:null,dataId:null,pending:false,err:''});try{localStorage.removeItem(FLAG)}catch(e){}try{FS.list=FS.db?((await idb('readonly',st=>st.getAll()))||[]):FS.list.filter(x=>!x.driveId)}catch(e){FS.list=[]}renderAll();renderDrive();toast('Signed out of Google')};
+const GICON='<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.7 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-16.6z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>';
+const renderDrive=()=>{const g=$('#gbar');if(!g)return;g.hidden=!canDrive;if(!canDrive)return;
+ if(GD.busy)g.innerHTML='<span><span class="gdot"></span>Syncing with Google Drive…</span>';
+ else if(GD.on)g.innerHTML=`<span><span class="gdot"></span>${GD.err?esc(GD.err):GD.pending?'Saving to Google Drive…':'Saved in your Google Drive'}${GD.email?' · '+esc(GD.email):''}</span><button type="button" class="glink" data-g="out">Sign out</button>`;
+ else g.innerHTML=`<button type="button" class="gbtn" data-g="in">${GICON}${wantsDrive()?'Continue with Google Drive':'Sign in with Google'}</button><span>${wantsDrive()?'Reconnect to load your saved details and uploads.':'Save your details and uploads in your own Google Drive.'}</span>${GD.err?'<span>'+esc(GD.err)+'</span>':''}`;
+ const dl=$('#dataLead');if(dl)dl.textContent=GD.on?`Your details and uploads are saved in the "${FOLDER}" folder of your Google Drive${GD.email?' ('+GD.email+')':''}, and a copy of your details stays in this browser. Sign in with the same Google account on any device to continue.`:'Everything you type stays in this browser on this device; nothing is sent to a server. To continue on another device, sign in with Google (when available) or export a file and import it there.'};
+const initGoogle=()=>{if(!canDrive)return;const setup=()=>{try{GD.client=google.accounts.oauth2.initTokenClient({client_id:CFG.googleClientId,scope:'https://www.googleapis.com/auth/drive.file openid email',callback:onToken,error_callback:()=>toast('Google sign-in was closed')})}catch(e){GD.err='Google sign-in is unavailable'}renderDrive()};
+ if(window.google?.accounts?.oauth2)setup();else{const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;sc.onload=setup;sc.onerror=()=>{GD.err='Google sign-in could not load';renderDrive()};document.head.appendChild(sc)}renderDrive()};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;if(b.dataset.g==='in')driveConnect();else driveSignOut()});
 const clearFiles=async()=>{try{await idb('readwrite',st=>st.clear())}catch(e){}FS.list=[]};
 const linkHtml=id=>{const lk=LINKS[id];if(!lk)return '';const ext=lk[0][0]!=='#';return `<a class="mini go" href="${esc(lk[0])}"${ext?' rel="noopener"':''}>${esc(lk[1])}${ext?' ↗':''}</a>`};
 const clList=(items,pre)=>`<ul class="cl">${items.map(([id,t,n])=>{const k=pre+id,on=!!S.checks[k],fs=filesFor(k);return `<li class="${on?'on':''}"><input type="checkbox" id="c-${esc(k)}" data-c="${esc(k)}"${on?' checked':''}><div><label for="c-${esc(k)}"><span class="t">${esc(t)}</span>${n?`<br><span class="n">${esc(n)}</span>`:''}</label><div class="up">${linkHtml(id)}<label class="mini">Upload scan<input class="sr" type="file" multiple accept="application/pdf,image/*" data-up="${esc(k)}"></label>${fs.map(f=>`<span class="chip"><span class="fn" title="${esc(f.name)}">${esc(f.name)}</span><span class="n">${size(f.size)}</span><button type="button" class="x" data-del="${esc(f.id)}" aria-label="Remove ${esc(f.name)}">×</button></span>`).join('')}</div></div></li>`}).join('')}</ul>`;
@@ -377,7 +419,7 @@ const renderLetters=()=>{const ds=docs();if(!ds.some(d=>d[0]===cur))cur='host';
 
 let DL=null,DLknown=false;
 const renderPkg=()=>{const n=FS.list.length,sz=FS.list.reduce((a,f)=>a+f.size,0),[d,t]=prog(allKeys());
- $('#pkg').innerHTML=`<div class="row"><div><h2>Your document package</h2><p class="lead" style="margin:0">${n} file${n===1?'':'s'} uploaded (${size(sz)}), ${d} of ${t} items ready. Use <b>Get form</b> for official forms and <b>Upload scan</b> for each document. The ZIP puts every upload in Embassy order, one folder per person, plus all letters as Word files.</p></div><button type="button" class="btn pri" id="dlPkg"${DL?'':' hidden'}>Download complete package (.zip)</button></div>${FS.mem?'<div class="al warn" style="margin-top:12px">This browser view can\'t store files, so uploads last only until you close the page. Download the package before leaving.</div>':''}${DLknown&&!DL?'<p class="foot">Downloads aren\'t available in this view. Open the app on claude.ai in a browser to download.</p>':''}`};
+ $('#pkg').innerHTML=`<div class="row"><div><h2>Your document package</h2><p class="lead" style="margin:0">${n} file${n===1?'':'s'} uploaded (${size(sz)}), ${d} of ${t} items ready. Use <b>Get form</b> for official forms and <b>Upload scan</b> for each document. The ZIP puts every upload in Embassy order, one folder per person, plus all letters as Word files.</p></div><button type="button" class="btn pri" id="dlPkg"${DL?'':' hidden'}>Download complete package (.zip)</button></div>${FS.mem&&!GD.on?'<div class="al warn" style="margin-top:12px">This browser view can\'t store files, so uploads last only until you close the page. Download the package before leaving.</div>':''}${DLknown&&!DL?'<p class="foot">Downloads aren\'t available in this view. Open the app on claude.ai in a browser to download.</p>':''}`};
 const renderAll=()=>{renderHero();renderAlerts();renderChecks();renderPkg();renderPlan();renderLetters()};
 
 const VIEWS=['trip','travellers','checklist','letters','plan','data'];
@@ -410,7 +452,7 @@ const clean=x=>String(x).replace(/[\\/:*?"<>|\u0000-\u001f]+/g,' ').replace(/\s+
 const short=t=>{const o=/^Optional: /.test(t);return clean(t.replace(/^Optional: /,'').split(/ – |, |: | \(/)[0])+(o?' (optional)':'')};
 const buf=bl=>bl.arrayBuffer?bl.arrayBuffer():new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsArrayBuffer(bl)});
 const buildPackage=async()=>{const Z=window.JSZip;if(!Z)throw new Error('nozip');const zip=new Z(),top=`Sweden visa package ${TODAY}`,root=zip.folder(top),lines=['Sweden visit visa - document package','Generated '+fmt(TODAY),'Embassy of Sweden, New Delhi - submit at VFS Global Sweden, Colombo',''];
- const addItems=async(folder,items,pre,label)=>{lines.push(label);for(const [i,[id,t]] of items.entries()){const fs=filesFor(pre+id),name=`${pad(i+1)} ${short(t)}`;lines.push(`  ${S.checks[pre+id]?'[x]':'[ ]'} ${name}${fs.length?` (${fs.length} file${fs.length>1?'s':''})`:' (no upload)'}`);if(!fs.length)continue;const f=folder.folder(name),used=new Set();for(const x of fs){const base=clean(x.name)||'scan';let nm=base,k=2;while(used.has(nm))nm=`${k++} ${base}`;used.add(nm);f.file(nm,await buf(x.blob))}}lines.push('')};
+ const addItems=async(folder,items,pre,label)=>{lines.push(label);for(const [i,[id,t]] of items.entries()){const fs=filesFor(pre+id),name=`${pad(i+1)} ${short(t)}`;lines.push(`  ${S.checks[pre+id]?'[x]':'[ ]'} ${name}${fs.length?` (${fs.length} file${fs.length>1?'s':''})`:' (no upload)'}`);if(!fs.length)continue;const f=folder.folder(name),used=new Set();for(const x of fs){const base=clean(x.name)||'scan';let nm=base,k=2;while(used.has(nm))nm=`${k++} ${base}`;used.add(nm);f.file(nm,await buf(x.blob||await (await gfetch(`${DAPI}/${x.driveId}?alt=media`)).blob()))}}lines.push('')};
  const hn=clean(S.host.name||'Host'),h=root.folder(`1 Host - ${hn}`);await addItems(h,hostItems(),'h:','HOST IN SWEDEN - '+hn);h.file('Host cover letter.docx',await docx(docHost()));
  for(const [i,t] of S.travellers.entries()){const nm=clean(t.name||'Traveller '+(i+1)),f=root.folder(`${i+2} ${nm}`),it=travItems(t).slice().sort((a,b)=>oi(a[0])-oi(b[0]));await addItems(f,it,'t:'+t.id+':',nm.toUpperCase());f.file(`Cover letter - ${nm}.docx`,await docx(docApp(t)));f.file(`Document index - ${nm}.docx`,await docx(docIndex(t)));f.file('Travel itinerary.docx',await docx(docItin()))}
  lines.push('Print the host documents once for each traveller: every applicant needs a full set.','Bring originals plus one A4 copy of each, unstapled, to the VFS appointment.');root.file('README.txt',lines.join('\r\n'));
@@ -422,11 +464,13 @@ $('#exp').addEventListener('click',()=>saveFile('sweden-visa-data.json',JSON.str
 $('#imp').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.trip||!d.host||!Array.isArray(d.travellers))throw 0;d.checks=d.checks||{};S=d;save();renderForms();renderAll();toast('Data imported')}catch(err){toast('That file is not a data file from this helper')}};r.readAsText(f);e.target.value=''});
 $('#wipe').addEventListener('click',()=>{$('#wipeAsk').hidden=false});
 $('#wipeNo').addEventListener('click',()=>{$('#wipeAsk').hidden=true});
-$('#wipeYes').addEventListener('click',async()=>{await clearFiles();S=BLANK();try{localStorage.removeItem(LS)}catch(e){}$('#wipeAsk').hidden=true;renderForms();renderAll();toast('All details erased')});
+$('#wipeYes').addEventListener('click',async()=>{if(GD.on)await driveSignOut();await clearFiles();S=BLANK();try{localStorage.removeItem(LS)}catch(e){}$('#wipeAsk').hidden=true;renderForms();renderAll();toast('All details erased')});
 
 renderForms();renderAll();show();
 (async()=>{try{if(!window.indexedDB)throw 0;FS.db=await idbOpen();FS.list=(await idb('readonly',st=>st.getAll()))||[]}catch(e){FS.db=null;FS.mem=true}FS.ready=true;renderHero();renderChecks();renderPkg()})();
-const dlp=window.claude?.use?.('downloads');Promise.resolve(dlp).then(d=>{DLknown=true;if(d){DL=d;['#dlDoc','#exp'].forEach(s=>$(s).hidden=false)}renderPkg()}).catch(()=>{DLknown=true;renderPkg()});
+const nativeDL={save:async({filename,data})=>{const b=data instanceof Blob?data:new Blob([data]);const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);return {status:'saved'}}};
+const dlp=window.claude?.use?window.claude.use('downloads'):Promise.resolve(nativeDL);Promise.resolve(dlp).then(d=>{DLknown=true;if(d){DL=d;['#dlDoc','#exp'].forEach(s=>$(s).hidden=false)}renderPkg()}).catch(()=>{DLknown=true;renderPkg()});
+initGoogle();
 }
 </script>
 </body>

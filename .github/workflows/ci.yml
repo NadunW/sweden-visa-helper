@@ -1,12 +1,17 @@
-name: CI
+name: CI and Pages
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -22,8 +27,29 @@ jobs:
         run: npm run lint
       - name: Run tests
         run: npm test
-      - name: Upload app as build artifact
-        uses: actions/upload-artifact@v4
+
+  deploy:
+    # Publish the app to GitHub Pages after tests pass on main
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write runtime config
+        env:
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+        run: |
+          printf 'window.APP_CONFIG = { googleClientId: %s };\n' "$(jq -Rn --arg v "$GOOGLE_CLIENT_ID" '$v')" > app/config.js
+          cat app/config.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          name: sweden-visa-helper
-          path: app/
+          path: app
+      - id: deployment
+        uses: actions/deploy-pages@v4
